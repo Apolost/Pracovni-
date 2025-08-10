@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vrátíme Úroky - Moderní Kalkulačka Vrácení Přeplatků</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #007bff;
+            --secondary-color: #0056b3;
+            --background-color: #f4f4f4;
+            --text-color: #333;
+            --white: #fff;
+            --shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        body {
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+        header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: var(--white);
+            text-align: center;
+            padding: 80px 20px;
+            position: relative;
+            overflow: hidden;
+        }
+        header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.2), transparent);
+            animation: pulse 5s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.2); opacity: 0.3; }
+            100% { transform: scale(1); opacity: 0.5; }
+        }
+        .logo {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        .logo::before {
+            content: '💰';
+            font-size: 2.5rem;
+        }
+        h1 {
+            font-size: 2.5rem;
+            margin: 0;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 30px;
+        }
+        .accordion-button {
+            background-color: var(--white);
+            color: var(--primary-color);
+            cursor: pointer;
+            padding: 18px;
+            width: 100%;
+            text-align: left;
+            border: none;
+            outline: none;
+            transition: background-color 0.3s;
+            font-size: 1.8rem;
+            font-weight: 600;
+            border-radius: 12px 12px 0 0;
+            box-shadow: var(--shadow);
+        }
+        .accordion-button:hover {
+            background-color: #f0f0f0;
+        }
+        .accordion-content {
+            display: none;
+            padding: 0 18px;
+            background-color: var(--white);
+            overflow: hidden;
+            border-radius: 0 0 12px 12px;
+            box-shadow: var(--shadow);
+        }
+        .accordion-content.show {
+            display: block;
+            padding: 18px;
+        }
+        form {
+            display: grid;
+            gap: 15px;
+        }
+        label {
+            font-weight: 600;
+        }
+        input, select {
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+        input:focus, select:focus {
+            border-color: var(--primary-color);
+            outline: none;
+        }
+        button:not(.accordion-button) {
+            background-color: var(--primary-color);
+            color: var(--white);
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.3s;
+        }
+        button:not(.accordion-button):hover {
+            background-color: var(--secondary-color);
+            transform: scale(1.05);
+        }
+        #vysledek, #narok-vysledek {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #e9f7ff;
+            border-radius: 8px;
+            font-weight: 600;
+        }
+        .info {
+            color: #666;
+            font-style: italic;
+        }
+        #odmena-info {
+            display: none;
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #e9ecef;
+            border-radius: 8px;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-content {
+            background-color: var(--white);
+            padding: 30px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: var(--shadow);
+            position: relative;
+            animation: fadeIn 0.3s ease;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .close {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            color: #aaa;
+            font-size: 24px;
+            cursor: pointer;
+        }
+        .close:hover {
+            color: #000;
+        }
+        #uspech-animace {
+            display: none;
+            text-align: center;
+            margin-top: 20px;
+        }
+        .animace-logo {
+            font-size: 5rem;
+            animation: jackpot 2s ease-in-out;
+            display: inline-block;
+        }
+        @keyframes jackpot {
+            0% { transform: scale(1); color: gold; }
+            50% { transform: scale(1.5); color: red; }
+            100% { transform: scale(1); color: gold; }
+        }
+        .konfety {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: yellow;
+            animation: padani 3s linear infinite;
+        }
+        @keyframes padani {
+            0% { top: -10%; opacity: 1; }
+            100% { top: 100%; opacity: 0; }
+        }
+        @media (max-width: 768px) {
+            header {
+                padding: 60px 15px;
+            }
+            h1 {
+                font-size: 2rem;
+            }
+            .container {
+                padding: 20px 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">Vrátíme Úroky</div>
+        <h1>Získejte Svůj Přeplatek Zpět – Rychle a Bez Rizika!</h1>
+        <p>Jednoduchý nástroj pro výpočet potenciálního vrácení přeplatků z nebankovních půjček. Nic neplatíte předem – odměna za právní pomoc je odečtena z vymožené částky pouze při úspěchu.</p>
+    </header>
+    
+    <div class="container">
+        <button class="accordion-button" onclick="toggleAccordion(this)">Jednoduchý postup, jak to funguje</button>
+        <div class="accordion-content">
+            <ol>
+                <li>Vyplňte kontaktní formulář s údaji o vaší půjčce.</li>
+                <li>Zdarma prověříme vaši smlouvu o úvěru na neplatnost (např. kvůli vysokým úrokům nebo chybám ve smlouvě).</li>
+                <li>Pokud smlouva splňuje podmínky, jednáme s nebankovní společností o vrácení přeplatků (úroky, poplatky, penále).</li>
+                <li>Při úspěchu získáte své peníze zpět, vrácíte pouze půjčenou jistinu.</li>
+            </ol>
+            <p class="info">Tento postup je založen na právních možnostech v Česku pro spotřebitelské úvěry od nebankovních společností.</p>
+        </div>
+        
+        <button class="accordion-button" onclick="toggleAccordion(this)">Podmínky pro vrácení úroků</button>
+        <div class="accordion-content">
+            <ul>
+                <li>Nesmí být insolvence.</li>
+                <li>Úrok vyšší než 50-100 %.</li>
+                <li>Zaplatili jste alespoň jistinu (např. půjčili jste si 50 000 Kč, zaplatili už přes tuto částku, ano můžeme řešit).</li>
+            </ul>
+        </div>
+        
+        <button class="accordion-button" onclick="toggleAccordion(this)">Co může zneplatnit úvěrovou smlouvu</button>
+        <div class="accordion-content">
+            <ul>
+                <li>Neprověření úvěruschopnosti dlužníka.</li>
+                <li>Lichva nebo nemravně vysoké úroky (např. RPSN nad 50 %).</li>
+                <li>Chyby ve smlouvě nebo neférová ujednání.</li>
+                <li>Platby poplatků předem nebo jiné nezákonné praktiky.</li>
+            </ul>
+        </div>
+        
+        <button class="accordion-button" onclick="toggleAccordion(this)">Zadejte údaje o vaší půjčce</button>
+        <div class="accordion-content">
+            <p class="info">Tato kalkulačka počítá na základě jednoduchých vstupů. Celkový přeplatek je odhadovaný jako rozdíl mezi celkovými splátkami a půjčenou částkou. Úrok není nutný vyplnit.</p>
+            <form id="formular">
+                <label for="castka">Půjčená částka (jistina v Kč):</label>
+                <input type="number" id="castka" required>
+                
+                <label for="splatka">Měsíční splátka (v Kč):</label>
+                <input type="number" id="splatka" required>
+                
+                <label for="mesice">Počet měsíců splácení:</label>
+                <input type="number" id="mesice" required>
+                
+                <button type="button" onclick="vypocet()">Vypočítat</button>
+            </form>
+            <div id="vysledek"></div>
+        </div>
+        
+        <button class="accordion-button" onclick="toggleAccordion(this)">Zjistit možnost vrácení peněz</button>
+        <div class="accordion-content">
+            <button onclick="otevritNarokModal()">Zjistit nárok</button>
+        </div>
+        
+        <!-- Modal pro zjištění nároku -->
+        <div id="narok-modal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="zavritNarokModal()">&times;</span>
+                <h2>Vyplňte údaje pro zjištění nároku</h2>
+                <form id="narok-form">
+                    <label for="insolvence">Insolvence:</label>
+                    <select id="insolvence" required>
+                        <option value="">Vyberte</option>
+                        <option value="ano">Ano</option>
+                        <option value="ne">Ne</option>
+                    </select>
+                    
+                    <label for="mzda">Přibližná čistá mzda (v Kč):</label>
+                    <input type="number" id="mzda" required>
+                    
+                    <label for="splatky">Měsíční splátky (včetně všech, v Kč):</label>
+                    <input type="number" id="splatky" required>
+                    
+                    <label for="rpsn">RPSN (%):</label>
+                    <input type="number" id="rpsn" required>
+                    
+                    <label for="pujcena-castka">Půjčená částka (v Kč):</label>
+                    <input type="number" id="pujcena-castka" required>
+                    
+                    <label for="zaplaceno">Kolik zaplaceno už odhadem (v Kč):</label>
+                    <input type="number" id="zaplaceno" required>
+                    
+                    <button type="button" onclick="vypocetNarok()">Zjistit</button>
+                </form>
+                <div id="narok-vysledek"></div>
+                <div id="uspech-animace">
+                    <div class="animace-logo">💰 Vrátíme Úroky</div>
+                    <button onclick="otevritModal()" style="margin-top: 20px;">Otevřít kontaktní formulář</button>
+                </div>
+            </div>
+        </div>
+        
+        <button class="accordion-button" onclick="toggleAccordion(this)">Kontaktujte nás</button>
+        <div class="accordion-content">
+            <button onclick="otevritModal()">Otevřít kontaktní formulář</button>
+        </div>
+        
+        <!-- Modal pro kontaktní formulář -->
+        <div id="kontakt-modal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="zavritModal()">&times;</span>
+                <h2>Vyplňte kontaktní údaje</h2>
+                <form id="kontakt-form">
+                    <label for="jmeno">Jméno:</label>
+                    <input type="text" id="jmeno" required>
+                    
+                    <label for="prijmeni">Příjmení:</label>
+                    <input type="text" id="prijmeni" required>
+                    
+                    <label for="telefon">Telefonní číslo:</label>
+                    <input type="tel" id="telefon" required>
+                    
+                    <label for="spolecnost">Společnost (nebankovní poskytovatel):</label>
+                    <input type="text" id="spolecnost" required>
+                    
+                    <label for="castka-pujcena">Částka půjčena (v Kč):</label>
+                    <input type="number" id="castka-pujcena" required>
+                    
+                    <label for="zaplaceno-odhadem">Kolik zaplaceno už odhadem (v Kč):</label>
+                    <input type="number" id="zaplaceno-odhadem" required>
+                    
+                    <label for="vice-spolecnosti">
+                        <input type="checkbox" id="vice-spolecnosti"> Více společností
+                    </label>
+                    
+                    <button type="submit">Odeslat</button>
+                </form>
+            </div>
+        </div>
+        
+        <button class="accordion-button" onclick="toggleAccordion(this)">Další akce</button>
+        <div class="accordion-content">
+            <button onclick="zobrazOdmena()">Odměna za doporučení</button>
+            <div id="odmena-info">
+                <p>Odměna za každého podepsaného člověka, kterému budeme řešit nebankovní společnosti: 250 Kč.</p>
+                <p>Kontakt na mě: apolosgs2@gmail.com</p>
+                <p>Odpovídáme do hodiny maximálně do 1 dne.</p>
+            </div>
+        </div>
+        
+        <button class="accordion-button" onclick="toggleAccordion(this)">Jak to funguje?</button>
+        <div class="accordion-content">
+            <p>Celkově zaplaceno = měsíční splátka × počet měsíců.</p>
+            <p>Přeplatek (úroky a poplatky) = celkově zaplaceno - půjčená částka.</p>
+            <p>Nic neplatíte předem. Právní pomoc je zdarma, dokud se peníze nevymoží.</p>
+        </div>
+    </div>
+    
+    <script>
+        function toggleAccordion(button) {
+            const content = button.nextElementSibling;
+            content.classList.toggle('show');
+        }
+        
+        function vypocet() {
+            const castka = parseFloat(document.getElementById('castka').value);
+            const splatka = parseFloat(document.getElementById('splatka').value);
+            const mesice = parseInt(document.getElementById('mesice').value);
+            
+            if (isNaN(castka) || isNaN(splatka) || isNaN(mesice)) {
+                document.getElementById('vysledek').innerHTML = 'Prosím zadejte všechny údaje správně.';
+                return;
+            }
+            
+            const celkemZaplateno = splatka * mesice;
+            const preplatek = celkemZaplateno - castka;
+            
+            document.getElementById('vysledek').innerHTML = `
+                <p>Celkově zaplaceno: ${celkemZaplateno.toFixed(2)} Kč</p>
+                <p>Přeplatek (úroky a poplatky): ${preplatek.toFixed(2)} Kč</p>
+                <p>Nic neplatíte předem – pouze při úspěchu.</p>
+            `;
+        }
+        
+        function vypocetNarok() {
+            const insolvence = document.getElementById('insolvence').value;
+            const mzda = parseFloat(document.getElementById('mzda').value);
+            const splatky = parseFloat(document.getElementById('splatky').value);
+            const rpsn = parseFloat(document.getElementById('rpsn').value);
+            const pujcenaCastka = parseFloat(document.getElementById('pujcena-castka').value);
+            const zaplaceno = parseFloat(document.getElementById('zaplaceno').value);
+            const zivotniMinimum = 4860;
+            const minPreplatek = 20000;
+            
+            if (!insolvence || isNaN(mzda) || isNaN(splatky) || isNaN(rpsn) || isNaN(pujcenaCastka) || isNaN(zaplaceno)) {
+                document.getElementById('narok-vysledek').innerHTML = 'Prosím zadejte všechny údaje správně.';
+                return;
+            }
+            
+            const preplatek = zaplaceno - pujcenaCastka;
+            const zustatek = mzda - splatky;
+            
+            if (insolvence === 'ano') {
+                document.getElementById('narok-vysledek').innerHTML = '<p style="color: red;">Není možné: Nesmíte být v insolvenci.</p>';
+                return;
+            }
+            
+            if (zustatek < zivotniMinimum) {
+                document.getElementById('narok-vysledek').innerHTML = '<p style="color: red;">Není možné: Zůstatek po splátkách (' + zustatek.toFixed(2) + ' Kč) je nižší než životní minimum (' + zivotniMinimum + ' Kč).</p>';
+                return;
+            }
+            
+            if (rpsn <= 50) {
+                document.getElementById('narok-vysledek').innerHTML = '<p style="color: red;">Není možné: RPSN musí být vyšší než 50 %.</p>';
+                return;
+            }
+            
+            if (preplatek <= minPreplatek) {
+                document.getElementById('narok-vysledek').innerHTML = '<p style="color: red;">Není možné: Přeplatek musí být vyšší než 20 000 Kč.</p>';
+                return;
+            }
+            
+            document.getElementById('narok-vysledek').innerHTML = '<p style="color: green;">Možné: Splňujete podmínky pro vrácení úroků.</p>';
+            spustitAnimaci();
+        }
+        
+        function spustitAnimaci() {
+            const animace = document.getElementById('uspech-animace');
+            animace.style.display = 'block';
+            
+            // Simulace konfet
+            for (let i = 0; i < 50; i++) {
+                const konfeta = document.createElement('div');
+                konfeta.classList.add('konfety');
+                konfeta.style.left = Math.random() * 100 + '%';
+                konfeta.style.background = ['yellow', 'red', 'green', 'blue'][Math.floor(Math.random() * 4)];
+                konfeta.style.animationDelay = Math.random() * 2 + 's';
+                document.body.appendChild(konfeta);
+                setTimeout(() => konfeta.remove(), 3000);
+            }
+        }
+        
+        function zobrazOdmena() {
+            const info = document.getElementById('odmena-info');
+            info.style.display = info.style.display === 'block' ? 'none' : 'block';
+        }
+        
+        function otevritModal() {
+            document.getElementById('kontakt-modal').style.display = 'flex';
+        }
+        
+        function zavritModal() {
+            document.getElementById('kontakt-modal').style.display = 'none';
+        }
+        
+        function otevritNarokModal() {
+            document.getElementById('narok-modal').style.display = 'flex';
+        }
+        
+        function zavritNarokModal() {
+            document.getElementById('narok-modal').style.display = 'none';
+        }
+        
+        // Zavřít modály kliknutím mimo obsah
+        window.onclick = function(event) {
+            const kontaktModal = document.getElementById('kontakt-modal');
+            const narokModal = document.getElementById('narok-modal');
+            if (event.target === kontaktModal) {
+                kontaktModal.style.display = 'none';
+            }
+            if (event.target === narokModal) {
+                narokModal.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>
